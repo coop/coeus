@@ -1,0 +1,3 @@
+# Coeus
+
+Common GraphQL scaffolding.
