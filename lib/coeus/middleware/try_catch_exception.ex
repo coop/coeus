@@ -2,13 +2,13 @@ defmodule Coeus.Middleware.TryCatchException do
   @behaviour Absinthe.Middleware
 
   def rescue_exceptions(middleware_spec, opts \\ []) do
-    reporter = Keyword.get(opts, :reporter, fn _ -> nil end)
+    reporter = Keyword.get(opts, :reporter, fn _ -> :ok end)
 
     {__MODULE__, {middleware_spec, reporter}}
   end
 
   @impl Absinthe.Middleware
-  def call(resolution, {middleware_spec, reporter}) do
+  def call(%{context: %{rescue_exceptions?: true}} = resolution, {middleware_spec, reporter}) do
     execute(middleware_spec, resolution)
   rescue
     e ->
@@ -18,6 +18,11 @@ defmodule Coeus.Middleware.TryCatchException do
         resolution,
         {:error, Coeus.UnhandledError.exception(original_exception: e)}
       )
+  end
+
+  @impl Absinthe.Middleware
+  def call(resolution, {middleware_spec, _reporter}) do
+    execute(middleware_spec, resolution)
   end
 
   defp execute({{module, function}, config}, resolution) do
