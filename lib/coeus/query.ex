@@ -35,6 +35,7 @@ defmodule Coeus.Query do
     query
     |> module.filter(args.filter)
     |> maybe_sort(module, args.sort)
+    |> tiebreak_sort(args.sort[:dir] || :asc)
     |> maybe_paginate(args)
   end
 
@@ -58,6 +59,10 @@ defmodule Coeus.Query do
 
   defp maybe_sort(query, _module, nil), do: query
   defp maybe_sort(query, module, %{by: field, dir: dir}), do: module.sort(query, field, dir)
+
+  defp tiebreak_sort(query, dir) do
+    order_by(query, [{^dir, :id}])
+  end
 
   defp maybe_paginate(query, %{limit: page_size, page: page_number}) do
     offset = page_size * (page_number - 1)
